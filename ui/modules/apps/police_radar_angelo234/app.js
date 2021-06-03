@@ -16,7 +16,14 @@ return {
         
         scope.$on('sendRadarInfo', function (event, data) {
             strongest_speed.textContent = Math.trunc(data.strongest_speed * 3.6) + " km/h";
-            fastest_speed.textContent = Math.trunc(data.fastest_speed * 3.6) + " km/h";
+            
+            if (data.fastest_speed !== undefined) {
+            	fastest_speed.textContent = Math.trunc(data.fastest_speed * 3.6) + " km/h";
+            }
+            else {
+                fastest_speed.textContent = "";
+            }       
+            
             patrol_speed.textContent = Math.trunc(data.patrol_speed * 3.6) + " km/h";
         });
         

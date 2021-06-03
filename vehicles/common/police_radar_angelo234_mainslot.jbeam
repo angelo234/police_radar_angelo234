@@ -1,0 +1,15 @@
+{
+"police_radar_angelo234_mainslot":{
+	"information":{
+        "authors":"angelo234",
+        "name":"angelo234's Police Radar",
+        "value":1000,
+    }
+    "slotType" : "licenseplate_design_2_1",
+	"controller": [
+        ["fileName"],
+		["policeRadar",]
+	],
+},
+
+}
