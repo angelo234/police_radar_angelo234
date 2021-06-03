@@ -1,0 +1,17 @@
+{
+  "domElement": "<police-radar-angelo234></police-radar-angelo234>",
+  "name": "Police Radar Unit",
+  "types": [
+    "ui.apps.categories.vehicle_profiling"
+  ],
+  "description": "yeet",
+  "css": {
+    "left": "0px",
+    "height": "80px",
+    "top": "0px",
+    "width": "400px"
+  },
+  "author": "angelo234",
+  "version": "0.1",
+  "directive": "policeRadarAngelo234"
+}
