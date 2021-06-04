@@ -4,11 +4,13 @@
 local M = {}
 
 --Radar beam width in degrees
-local radar_beam_size = 20
+local radar_beam_size = 15
 
 local max_range = 500
 
 local sfx_source = nil
+
+local yaw_angle = -6
 
 local function init(jbeamData)
 
@@ -23,13 +25,16 @@ end
 local function getBeamDimensions(radar_pos)
   local my_veh_dir = vec3(obj:getDirectionVector())
   local my_veh_dir_up = vec3(obj:getDirectionVectorUp())
-  local my_veh_dir_right = vec3(obj:getDirectionVectorRight())
+  
+  local radar_dir = quatFromAxisAngle(my_veh_dir_up, yaw_angle * math.pi / 180.0) * my_veh_dir
+  
+  local radar_dir_right = radar_dir:cross(my_veh_dir_up)
   
   local beam_spread = getBeamSpread()
   
-  local p1 = radar_pos + my_veh_dir * max_range + my_veh_dir_right * beam_spread
-  local p2 = radar_pos + my_veh_dir * max_range + my_veh_dir_right * -beam_spread
-  
+  local p1 = radar_pos + radar_dir * max_range + radar_dir_right * beam_spread
+  local p2 = radar_pos + radar_dir * max_range + radar_dir_right * -beam_spread
+
   return p1, p2
 end
 
@@ -40,8 +45,8 @@ local function getVehiclesInRadarBeam(radar_pos)
 
   --debugDrawer:setSolidTriCulling(false)
 
-  --debugDrawer:drawQuadSolid(radar_pos:toPoint3F(), (radar_pos + vec3(0,0,0.1)):toPoint3F(), (p1 + vec3(0,0,0.1)):toPoint3F(), p1:toPoint3F(), ColorF(1,0,0,0.5)) 
-  --debugDrawer:drawQuadSolid(radar_pos:toPoint3F(), (radar_pos + vec3(0,0,0.1)):toPoint3F(), (p2 + vec3(0,0,0.1)):toPoint3F(), p2:toPoint3F(), ColorF(1,0,0,0.5))
+  obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p1:toFloat3(), color(255,0,0,255)) 
+  obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p2:toFloat3(), color(255,0,0,255)) 
 
   --obj.debugDrawProxy:drawSphere(0.25, radar_pos:toFloat3(), color(255,0,0,255))
 
@@ -119,7 +124,7 @@ local function updateGFX(dt)
   local my_veh_dir_up = vec3(obj:getDirectionVectorUp())
   local my_veh_dir_right = vec3(obj:getDirectionVectorRight())
 
-  local radar_pos = vec3(obj:getFrontPosition()) + my_veh_dir_up * 0.75 - my_veh_dir * 1
+  local radar_pos = vec3(obj:getFrontPosition()) + my_veh_dir_up * 0.75 - my_veh_dir * 1.5 + my_veh_dir_right * 0.4
 
   local vehs = getVehiclesInRadarBeam(radar_pos)
 
