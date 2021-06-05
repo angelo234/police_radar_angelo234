@@ -10,7 +10,7 @@ local max_range = 500
 
 local sfx_source = nil
 
-local yaw_angle = -6
+local yaw_angle = -3.5
 
 local function init(jbeamData)
 
@@ -124,7 +124,7 @@ local function updateGFX(dt)
   local my_veh_dir_up = vec3(obj:getDirectionVectorUp())
   local my_veh_dir_right = vec3(obj:getDirectionVectorRight())
 
-  local radar_pos = vec3(obj:getFrontPosition()) + my_veh_dir_up * 0.75 - my_veh_dir * 1.5 + my_veh_dir_right * 0.4
+  local radar_pos = vec3(obj:getFrontPosition()) + my_veh_dir_up * 0.85 - my_veh_dir * 1.5 + my_veh_dir_right * 0.4
 
   local vehs = getVehiclesInRadarBeam(radar_pos)
 

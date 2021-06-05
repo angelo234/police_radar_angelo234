@@ -1,25 +1,58 @@
-<div style="height:100%; background-color: white;">
+<div id="container" style="height: 100%; width: 100%; background-color: black;"> 
   <style>
-  .speed-reading {
-    margin-left: 15px;
-    margin-right: 15px;
-  }
-</style>
+    .speed-reading {
+      margin-left: 15px;
+      margin-right: 15px;
+    }
+    
+    #col1 {
+      display: inline-block;
+    
+      border-style: solid;
+      border-color: red;
+    }
+    
+    #col2 {
+      display: inline-block;
+    
+      border-style: solid;
+      border-color: red;
+    }
+    
+    #col3 {
+      display: inline-block;
+    
+      border-style: solid;
+      border-color: red;
+    }
+  </style>
   
-  <div style="display: flex; width: 100%; text-align: center; justify-content: center">
-    <div class="speed-reading">
-      <h2>Strongest Signal</h2>
-      <h3 id="strongest-speed"></h3>
+  <div style="height: 100%; width: 100%;">
+    <div class="speed-reading" id="col1">
+      <h2 style="color:white;">Strongest Signal</h2>
+      
+      <canvas id="strongest-speed-display" width="100" height="50">
+        Your browser is unfortunately not supported.
+      </canvas>
     </div>
     
-    <div class="speed-reading">
-      <h2>Fastest Speed</h2>
+    <div class="speed-reading" id="col2">
+      <h2 style="color:white;">Fastest Speed</h2>
       <h3 id="fastest-speed"></h3>
+      
+      <canvas id="fastest-speed-display" width="100" height="50">
+        Your browser is unfortunately not supported.
+      </canvas>
     </div>
     
-    <div class="speed-reading">
-      <h2>Patrol Speed</h2>
+    <div class="speed-reading" id="col3">
+      <h2 style="color:white;">Patrol Speed</h2>
       <h3 id="patrol-speed"></h3>
+      
+      <canvas id="patrol-speed-display" width="100" height="50">
+        Your browser is unfortunately not supported.
+      </canvas>
     </div>
   </div>
 </div>
+
