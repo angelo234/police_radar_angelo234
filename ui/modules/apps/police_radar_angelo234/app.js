@@ -5,10 +5,6 @@ angular.module('beamng.apps')
     templateUrl: 'modules/apps/police_radar_angelo234/app.html',
     replace: true,
     link: function (scope, element, attrs) {
-      var strongest_speed = document.getElementById("strongest-speed");
-      var fastest_speed = document.getElementById("fastest-speed");
-      var patrol_speed = document.getElementById("patrol-speed");
-
       var strongest_speed_display = new SegmentDisplay("strongest-speed-display");
       var fastest_speed_display = new SegmentDisplay("fastest-speed-display");
       var patrol_speed_display = new SegmentDisplay("patrol-speed-display");
@@ -70,20 +66,40 @@ angular.module('beamng.apps')
         return spaces + s; 
       }
       
-      scope.$on('sendRadarInfo', function (event, data) {
-        var strongest_speed_str = Math.trunc(data.strongest_speed * 3.6).toString();
-        strongest_speed_display.setValue(convertToDisplay(strongest_speed_str));
-
-        if (data.fastest_speed !== undefined) {
-          var fastest_speed_str = Math.trunc(data.fastest_speed * 3.6).toString();
-          fastest_speed_display.setValue(convertToDisplay(fastest_speed_str));
+      scope.$on('sendRadarInfo', function (event, data) {   
+        if (data.radar_hold) {
+          //Radar hold mode (not transmitting)
+          strongest_speed_display.setValue('');
+          fastest_speed_display.setValue('HLd');
+          patrol_speed_display.setValue('');
         }
-        else {
-          fastest_speed_display.setValue('');
-        }       
-        
-        var patrol_speed_str = Math.trunc(data.patrol_speed * 3.6).toString();     
-        patrol_speed_display.setValue(convertToDisplay(patrol_speed_str));
+        else{
+          //Transmitting
+      
+          if (data.strongest_speed !== undefined) {
+            var strongest_speed_str = Math.min(999, Math.trunc(Math.abs(data.strongest_speed * 2.23694))).toString();
+            strongest_speed_display.setValue(convertToDisplay(strongest_speed_str));
+          }
+          else {
+            strongest_speed_display.setValue('');
+          } 
+
+          if (data.fastest_speed !== undefined) {
+            var fastest_speed_str = Math.min(999, Math.trunc(Math.abs(data.fastest_speed * 2.23694))).toString();
+            fastest_speed_display.setValue(convertToDisplay(fastest_speed_str));
+          }
+          else {
+            fastest_speed_display.setValue('');
+          }       
+          
+          if (data.patrol_speed !== undefined) {
+            var patrol_speed_str = Math.min(999, Math.trunc(Math.abs(data.patrol_speed * 2.23694))).toString();     
+            patrol_speed_display.setValue(convertToDisplay(patrol_speed_str));
+          }
+          else {
+            patrol_speed_display.setValue('');
+          }  
+        }
       });
       
       scope.$on('streamsUpdate', function (event, streams) {

@@ -4,13 +4,35 @@
 local M = {}
 
 --Radar beam width in degrees
-local radar_beam_size = 15
-
+local radar_beam_size = 20
 local max_range = 500
 
-local sfx_source = nil
+--Antenna rotation in degrees
+local yaw_angle = -3
 
-local yaw_angle = -3.5
+local radar_doppler_sfx = nil
+local select_sfx = nil
+
+local radar_hold = false
+
+local function toggleRadarHold()
+  radar_hold = not radar_hold
+  
+  local msg = "OFF"
+  
+  if not radar_hold then
+    msg = "ON"
+    
+    obj:playSFX(radar_doppler_sfx)
+  else
+    obj:setVolumePitch(radar_doppler_sfx, 0, 1)
+    obj:stopSFX(radar_doppler_sfx)
+  end
+  
+  ui_message("Radar Transmitting " .. msg)
+  
+  obj:playSFXOnce('radar_select', 0, 2.5, 1)
+end
 
 local function init(jbeamData)
 
@@ -27,7 +49,6 @@ local function getBeamDimensions(radar_pos)
   local my_veh_dir_up = vec3(obj:getDirectionVectorUp())
   
   local radar_dir = quatFromAxisAngle(my_veh_dir_up, yaw_angle * math.pi / 180.0) * my_veh_dir
-  
   local radar_dir_right = radar_dir:cross(my_veh_dir_up)
   
   local beam_spread = getBeamSpread()
@@ -79,7 +100,7 @@ end
 
 local function getStrongestVehicle(vehs, radar_pos)
   local min_dist = 999999
-  local speed = 0
+  local speed = nil
   
   for _, veh in pairs(vehs) do
     local dist = (radar_pos - vec3(veh.pos)):length()
@@ -112,12 +133,16 @@ end
 local function playTone(speed)
   local pitch = math.max(speed / 13.4112, 0)
 
-  obj:setVolumePitch(sfx_source, 1, pitch)
+  obj:setVolumePitch(radar_doppler_sfx, 1, pitch)
 end
 
 local function updateGFX(dt)
-  if not sfx_source then
-    sfx_source = obj:createSFXSource('art/sound/550hz.wav', 'AudioDefaultLoop3D', '', 1)
+  if not radar_doppler_sfx then
+    radar_doppler_sfx = obj:createSFXSource('art/sound/550hz.wav', 'AudioDefaultLoop3D', '', 1)
+  end
+  
+  if not select_sfx then
+    select_sfx = obj:createSFXSource('art/sound/select.wav', 'AudioGui', 'radar_select', 1)
   end
 
   local my_veh_dir = vec3(obj:getDirectionVector())
@@ -125,37 +150,52 @@ local function updateGFX(dt)
   local my_veh_dir_right = vec3(obj:getDirectionVectorRight())
 
   local radar_pos = vec3(obj:getFrontPosition()) + my_veh_dir_up * 0.85 - my_veh_dir * 1.5 + my_veh_dir_right * 0.4
-
-  local vehs = getVehiclesInRadarBeam(radar_pos)
-
-  local noise_val = math.random() * 0.5 - 0.25
-
-  local strongest_speed = getStrongestVehicle(vehs, radar_pos) + noise_val
-  local fastest_speed = getFastestVehicle(vehs) + noise_val
-
-  playTone(fastest_speed)
+  
+  local strongest_speed = nil
+  local fastest_speed = nil
+  local patrol_speed = nil
   
   local data = {}
-  data.strongest_speed = strongest_speed
+
+  data.radar_hold = radar_hold
+
+  if not radar_hold then
+    data.patrol_speed = vec3(obj:getVelocity()):length()
+    
+    local vehs = getVehiclesInRadarBeam(radar_pos)
   
-  --Only display fastest speed if greater than strongest source speed
-  if fastest_speed > strongest_speed then
-    data.fastest_speed = fastest_speed
-  else
-    data.fastest_speed = nil
+    strongest_speed = getStrongestVehicle(vehs, radar_pos)
+    
+    --Check if vehicle in beam first of all
+    if strongest_speed then
+      fastest_speed = getFastestVehicle(vehs)
+      data.strongest_speed = strongest_speed
+    
+      --Only display fastest speed if greater than strongest source speed
+      if fastest_speed > strongest_speed then
+        data.fastest_speed = fastest_speed
+      else
+        data.fastest_speed = nil
+      end
+    end
+    
+    local noise_val = math.random() * 0.5 - 0.25
+    
+    local tone_speed = fastest_speed or 0
+    
+    playTone(tone_speed + noise_val)
   end
-  
-  data.patrol_speed = vec3(obj:getVelocity()):length()
-  
+
   guihooks.trigger('sendRadarInfo', data)
   
   --print("Max speed: " .. (max_speed * 3.6) .. " km/h")
 end
 
 local function cleanUp()
-  obj:stopSFX(sfx_source)
+  obj:stopSFX(radar_doppler_sfx)
 end
 
+M.toggleRadarHold = toggleRadarHold
 M.init = init
 M.updateGFX = updateGFX
 M.cleanUp = cleanUp

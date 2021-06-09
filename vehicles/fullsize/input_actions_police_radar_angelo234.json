@@ -1,0 +1,3 @@
+{
+  "toggle_radar": {"title": "Toggle Police Radar", "desc": "Turns on/off Police Radar", "order": 100, "onDown": "local police_radar = controller.getController('policeRadar'); if police_radar then police_radar.toggleRadarHold() end" },
+}
