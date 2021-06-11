@@ -24,16 +24,8 @@ local locked_speed = 0
 local function toggleRadarXmitting()
   radar_xmitting = not radar_xmitting
   
-  local msg = "OFF"
-  
   audio.setDopplerSoundOn(radar_xmitting)
-  
-  if radar_xmitting then
-    msg = "ON"
-  end
-  
-  ui_message("Radar Transmitting " .. msg)
-  
+
   audio.playSelectSound()
 end
 
