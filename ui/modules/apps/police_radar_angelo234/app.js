@@ -6,7 +6,7 @@ angular.module('beamng.apps')
     replace: true,
     link: function (scope, element, attrs) {
       var strongest_speed_display = new SegmentDisplay("strongest-speed-display");
-      var fastest_speed_display = new SegmentDisplay("fastest-speed-display");
+      var middle_display = new SegmentDisplay("middle-display");
       var patrol_speed_display = new SegmentDisplay("patrol-speed-display");
       
       
@@ -27,18 +27,18 @@ angular.module('beamng.apps')
         strongest_speed_display.colorOff        = "#4b1e05";
         strongest_speed_display.draw();
         
-        fastest_speed_display.pattern         = "###";
-        fastest_speed_display.displayAngle    = 0;
-        fastest_speed_display.digitHeight     = 20;
-        fastest_speed_display.digitWidth      = 12;
-        fastest_speed_display.digitDistance   = 2.5;
-        fastest_speed_display.segmentWidth    = 2.5;
-        fastest_speed_display.segmentDistance = 0.5;
-        fastest_speed_display.segmentCount    = 7;
-        fastest_speed_display.cornerType      = 3;
-        fastest_speed_display.colorOn         = "#ff0000";
-        fastest_speed_display.colorOff        = "#4b1e05";
-        fastest_speed_display.draw();
+        middle_display.pattern         = "###";
+        middle_display.displayAngle    = 0;
+        middle_display.digitHeight     = 20;
+        middle_display.digitWidth      = 12;
+        middle_display.digitDistance   = 2.5;
+        middle_display.segmentWidth    = 2.5;
+        middle_display.segmentDistance = 0.5;
+        middle_display.segmentCount    = 7;
+        middle_display.cornerType      = 3;
+        middle_display.colorOn         = "#ff0000";
+        middle_display.colorOff        = "#4b1e05";
+        middle_display.draw();
         
         patrol_speed_display.pattern         = "###";
         patrol_speed_display.displayAngle    = 0;
@@ -49,8 +49,8 @@ angular.module('beamng.apps')
         patrol_speed_display.segmentDistance = 0.5;
         patrol_speed_display.segmentCount    = 7;
         patrol_speed_display.cornerType      = 3;
-        patrol_speed_display.colorOn         = "#ff0000";
-        patrol_speed_display.colorOff        = "#4b1e05";
+        patrol_speed_display.colorOn         = "#00ff00";
+        patrol_speed_display.colorOff        = "#1e4b05";
         patrol_speed_display.draw();
       }
       
@@ -67,15 +67,17 @@ angular.module('beamng.apps')
       }
       
       scope.$on('sendRadarInfo', function (event, data) {   
-        if (data.radar_hold) {
+        if (!data.radar_xmitting) {
           //Radar hold mode (not transmitting)
           strongest_speed_display.setValue('');
-          fastest_speed_display.setValue('HLd');
+          middle_display.setValue('HLd');
           patrol_speed_display.setValue('');
         }
         else{
           //Transmitting
-      
+          
+          //Left Display
+          
           if (data.strongest_speed !== undefined) {
             var strongest_speed_str = Math.min(999, Math.trunc(Math.abs(data.strongest_speed * 2.23694))).toString();
             strongest_speed_display.setValue(convertToDisplay(strongest_speed_str));
@@ -83,14 +85,28 @@ angular.module('beamng.apps')
           else {
             strongest_speed_display.setValue('');
           } 
-
-          if (data.fastest_speed !== undefined) {
-            var fastest_speed_str = Math.min(999, Math.trunc(Math.abs(data.fastest_speed * 2.23694))).toString();
-            fastest_speed_display.setValue(convertToDisplay(fastest_speed_str));
-          }
-          else {
-            fastest_speed_display.setValue('');
-          }       
+          
+          //Middle Display
+          
+          switch(data.middle_display_mode) {
+            case "fastest_speed":
+              if (data.fastest_speed !== undefined) {
+                var fastest_speed_str = Math.min(999, Math.trunc(Math.abs(data.fastest_speed * 2.23694))).toString();
+                middle_display.setValue(convertToDisplay(fastest_speed_str));
+              }
+              else {
+                middle_display.setValue('');
+              }
+              break;
+            
+            case "locked_speed":
+              var locked_speed_str = Math.min(999, Math.trunc(Math.abs(data.locked_speed * 2.23694))).toString();
+              middle_display.setValue(convertToDisplay(locked_speed_str));
+            
+              break;
+          }           
+          
+          //Right Display
           
           if (data.patrol_speed !== undefined) {
             var patrol_speed_str = Math.min(999, Math.trunc(Math.abs(data.patrol_speed * 2.23694))).toString();     

@@ -1,3 +1,5 @@
 {
-  "toggle_radar": {"title": "Toggle Police Radar", "desc": "Turns on/off Police Radar", "order": 100, "onDown": "local police_radar = controller.getController('policeRadar'); if police_radar then police_radar.toggleRadarHold() end" },
+  "toggle_radar_xmitting": {"title": "Police Radar Toggle XMIT", "desc": "Turns on/off radar transmitting", "order": 100, "onDown": "local police_radar = controller.getController('policeRadar'); if police_radar then police_radar.toggleRadarXmitting() end" },
+  "lock_strongest_speed": {"title": "Police Radar Lock Strongest Speed", "desc": "Locks the strongest signal vehicle speed", "order": 101, "onDown": "local police_radar = controller.getController('policeRadar'); if police_radar then police_radar.lockStrongestSpeed() end" },
+  "lock_fastest_speed": {"title": "Police Radar Lock Fastest Speed", "desc": "Locks the fastest vehicle speed", "order": 102, "onDown": "local police_radar = controller.getController('policeRadar'); if police_radar then police_radar.lockFastestSpeed() end" },
 }

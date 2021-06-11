@@ -1,6 +1,9 @@
 -- This Source Code Form is subject to the terms of the bCDDL, v. 1.1.
 -- If a copy of the bCDDL was not distributed with this
 -- file, You can obtain one at http://beamng.com/bCDDL-1.1.txt
+
+local audio = require('lua/common/controller/policeRadarAudio')
+
 local M = {}
 
 --Radar beam width in degrees
@@ -10,28 +13,44 @@ local max_range = 500
 --Antenna rotation in degrees
 local yaw_angle = -3
 
-local radar_doppler_sfx = nil
-local select_sfx = nil
+local middle_display_mode = "fastest_speed"
 
-local radar_hold = false
+local radar_xmitting = false
+local lock_strongest_speed_flag = false
+local lock_fastest_speed_flag = false
 
-local function toggleRadarHold()
-  radar_hold = not radar_hold
+local locked_speed = 0
+
+local function toggleRadarXmitting()
+  radar_xmitting = not radar_xmitting
   
   local msg = "OFF"
   
-  if not radar_hold then
+  audio.setDopplerSoundOn(radar_xmitting)
+  
+  if radar_xmitting then
     msg = "ON"
-    
-    obj:playSFX(radar_doppler_sfx)
-  else
-    obj:setVolumePitch(radar_doppler_sfx, 0, 1)
-    obj:stopSFX(radar_doppler_sfx)
   end
   
   ui_message("Radar Transmitting " .. msg)
   
-  obj:playSFXOnce('radar_select', 0, 2.5, 1)
+  audio.playSelectSound()
+end
+
+local function lockStrongestSpeed()
+  lock_strongest_speed_flag = true
+  
+  middle_display_mode = "locked_speed"
+  
+  audio.playSelectSound()
+end
+
+local function lockFastestSpeed()
+  lock_fastest_speed_flag = true
+  
+  middle_display_mode = "locked_speed"
+  
+  audio.playSelectSound()
 end
 
 local function init(jbeamData)
@@ -130,26 +149,24 @@ local function getFastestVehicle(vehs)
   return max_speed
 end
 
-local function playTone(speed)
-  local pitch = math.max(speed / 13.4112, 0)
-
-  obj:setVolumePitch(radar_doppler_sfx, 1, pitch)
-end
-
-local function updateGFX(dt)
-  if not radar_doppler_sfx then
-    radar_doppler_sfx = obj:createSFXSource('art/sound/550hz.wav', 'AudioDefaultLoop3D', '', 1)
-  end
-  
-  if not select_sfx then
-    select_sfx = obj:createSFXSource('art/sound/select.wav', 'AudioGui', 'radar_select', 1)
-  end
-
+local function getRadarPos()
   local my_veh_dir = vec3(obj:getDirectionVector())
   local my_veh_dir_up = vec3(obj:getDirectionVectorUp())
   local my_veh_dir_right = vec3(obj:getDirectionVectorRight())
 
-  local radar_pos = vec3(obj:getFrontPosition()) + my_veh_dir_up * 0.85 - my_veh_dir * 1.5 + my_veh_dir_right * 0.4
+  return vec3(obj:getFrontPosition()) + my_veh_dir_up * 0.85 - my_veh_dir * 1.5 + my_veh_dir_right * 0.4
+end
+
+local first_update = false
+
+local function updateGFX(dt)
+  if not first_update then
+    audio.init()
+    
+    first_update = true
+  end
+  
+  local radar_pos = getRadarPos()
   
   local strongest_speed = nil
   local fastest_speed = nil
@@ -157,9 +174,10 @@ local function updateGFX(dt)
   
   local data = {}
 
-  data.radar_hold = radar_hold
-
-  if not radar_hold then
+  data.middle_display_mode = middle_display_mode
+  data.radar_xmitting = radar_xmitting
+  
+  if radar_xmitting then
     data.patrol_speed = vec3(obj:getVelocity()):length()
     
     local vehs = getVehiclesInRadarBeam(radar_pos)
@@ -177,13 +195,30 @@ local function updateGFX(dt)
       else
         data.fastest_speed = nil
       end
+      
+      if lock_strongest_speed_flag then
+        locked_speed = strongest_speed
+        
+        audio.playLockedSpeedVoice("front", "stationary", "closing")   
+      end
+      
+      if lock_fastest_speed_flag then
+        locked_speed = fastest_speed
+        
+        audio.playLockedSpeedVoice("front", "stationary", "closing")  
+      end
     end
+    
+    lock_strongest_speed_flag = false
+    lock_fastest_speed_flag = false
+
+    data.locked_speed = locked_speed
     
     local noise_val = math.random() * 0.5 - 0.25
     
     local tone_speed = fastest_speed or 0
     
-    playTone(tone_speed + noise_val)
+    audio.setDopplerSoundPitch(tone_speed + noise_val)
   end
 
   guihooks.trigger('sendRadarInfo', data)
@@ -191,13 +226,16 @@ local function updateGFX(dt)
   --print("Max speed: " .. (max_speed * 3.6) .. " km/h")
 end
 
+--[[
 local function cleanUp()
   obj:stopSFX(radar_doppler_sfx)
 end
+]]--
 
-M.toggleRadarHold = toggleRadarHold
+M.toggleRadarXmitting = toggleRadarXmitting
+M.lockStrongestSpeed = lockStrongestSpeed
+M.lockFastestSpeed = lockFastestSpeed
 M.init = init
 M.updateGFX = updateGFX
-M.cleanUp = cleanUp
 
 return M
