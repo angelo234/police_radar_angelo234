@@ -1,50 +1,56 @@
 local M = {}
 
 local radar_doppler_sfx = nil
-local select_sfx = nil
 
-local voice_front_sfx = nil
-local voice_rear_sfx = nil
-local voice_stationary_sfx = nil
-local voice_same_sfx = nil
-local voice_opposite_sfx = nil
-local voice_closing_sfx = nil
-local voice_away_sfx = nil
+local voice_sfx_table = {}
+
+local voice_volume = 5
+
+local locked_speed_voice_time = 0
+
+local locked_speed_voice_timer = -1
+local locked_speed_voice_msg = "dir"
+
+local locked_speed_voice_dir = nil
+local locked_speed_voice_mode = nil
+local locked_speed_voice_vel = nil
 
 local function init()
-  radar_doppler_sfx = obj:createSFXSource(    'art/sound/550hz.wav',              'AudioDefaultLoop3D', '', 1)
-  select_sfx = obj:createSFXSource(           'art/sound/select.wav',             'AudioGui', 'radar_select', 1)
+  radar_doppler_sfx = obj:createSFXSource('art/sound/550hz.wav', 'AudioDefaultLoop3D', '', 1)
   
-  --Voices
-  voice_front_sfx = obj:createSFXSource(      'art/sound/speech/front.wav',       'AudioGui', 'radar_voice_front', 1)
-  voice_rear_sfx = obj:createSFXSource(       'art/sound/speech/rear.wav',        'AudioGui', 'radar_voice_rear', 1)
-  voice_stationary_sfx = obj:createSFXSource( 'art/sound/speech/stationary.wav',  'AudioGui', 'radar_voice_stationary', 1)
-  voice_same_sfx = obj:createSFXSource(       'art/sound/speech/same.wav',        'AudioGui', 'radar_voice_same', 1)
-  voice_opposite_sfx = obj:createSFXSource(   'art/sound/speech/opposite.wav',    'AudioGui', 'radar_voice_opposite', 1)
-  voice_closing_sfx = obj:createSFXSource(    'art/sound/speech/closing.wav',     'AudioGui', 'radar_voice_closing', 1)
-  voice_away_sfx = obj:createSFXSource(       'art/sound/speech/away.wav',        'AudioGui', 'radar_voice_away', 1)
+  obj:createSFXSource('art/sound/select.wav', 'AudioGui', 'radar_select', 1)
+  
+  --Voices (credits: https://voicemaker.in/)
+  voice_sfx_table["front"] = {sfx_name = "radar_voice_front", length = 0.4}
+  voice_sfx_table["rear"] = {sfx_name = "radar_voice_rear", length = 0.4}
+  voice_sfx_table["stationary"] = {sfx_name = "radar_voice_stationary", length = 0.68}
+  voice_sfx_table["same"] = {sfx_name = "radar_voice_same", length = 0.4}
+  voice_sfx_table["opposite"] = {sfx_name = "radar_voice_opposite", length = 0.7}
+  voice_sfx_table["closing"] = {sfx_name = "radar_voice_closing", length = 0.5}
+  voice_sfx_table["away"] = {sfx_name = "radar_voice_away", length = 0.4}
+  
+  for key, data in pairs(voice_sfx_table) do
+    obj:createSFXSource('art/sound/speech/' .. key .. '.wav', 'AudioGui', data.sfx_name, 1)
+  end
 end
 
 local function playLockedSpeedVoice(dir, mode, vel)
-  if dir == "front" then
-    obj:playSFXOnce('radar_voice_front', 0, 2.5, 1)
-  elseif dir == "rear" then
-    obj:playSFXOnce('radar_voice_rear', 0, 2.5, 1)
-  end
+  locked_speed_voice_dir = dir
+  locked_speed_voice_mode = mode
+  locked_speed_voice_vel = vel
 
-  if mode == "stationary" then
-    obj:playSFXOnce('radar_voice_stationary', 0, 2.5, 1)
-  elseif mode == "same" then
-    obj:playSFXOnce('radar_voice_same', 0, 2.5, 1)
-  elseif mode == "opposite" then
-    obj:playSFXOnce('radar_voice_opposite', 0, 2.5, 1)
+  locked_speed_voice_msg = "dir"
+  locked_speed_voice_timer = 1
+end
+
+local function playVoice(voice)
+  if voice_sfx_table[voice] then
+    obj:playSFXOnce(voice_sfx_table[voice].sfx_name, 0, voice_volume, 1)
+
+    return voice_sfx_table[voice].length
   end
   
-  if vel == "closing" then
-    obj:playSFXOnce('radar_voice_closing', 0, 2.5, 1)
-  elseif vel == "away" then
-    obj:playSFXOnce('radar_voice_away', 0, 2.5, 1)
-  end
+  return nil
 end
 
 local function playSelectSound()
@@ -66,9 +72,41 @@ local function setDopplerSoundPitch(speed)
   obj:setVolumePitch(radar_doppler_sfx, 1, pitch)
 end
 
+local function updateGFX(dt)
+  if locked_speed_voice_timer >= locked_speed_voice_time then
+    if locked_speed_voice_msg == "dir" then
+      local length = playVoice(locked_speed_voice_dir)
+      
+      locked_speed_voice_time = length
+      locked_speed_voice_msg = "mode"
+      locked_speed_voice_timer = 0
+      
+    elseif locked_speed_voice_msg == "mode" then
+      local length = playVoice(locked_speed_voice_mode)
+      
+      locked_speed_voice_time = length
+      locked_speed_voice_msg = "vel"    
+      locked_speed_voice_timer = 0
+      
+    elseif locked_speed_voice_msg == "vel" then
+      local length = playVoice(locked_speed_voice_vel)
+      
+      locked_speed_voice_time = length
+      locked_speed_voice_msg = "dir"    
+      locked_speed_voice_timer = -1
+    end
+  end
+  
+  if locked_speed_voice_timer >= 0 then
+    locked_speed_voice_timer = locked_speed_voice_timer + dt
+  end
+end
+
 M.init = init
+M.playLockedSpeedVoice = playLockedSpeedVoice
 M.playSelectSound = playSelectSound
 M.setDopplerSoundOn = setDopplerSoundOn
 M.setDopplerSoundPitch = setDopplerSoundPitch
+M.updateGFX = updateGFX
 
 return M

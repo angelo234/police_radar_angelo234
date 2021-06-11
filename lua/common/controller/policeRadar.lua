@@ -120,6 +120,7 @@ end
 local function getStrongestVehicle(vehs, radar_pos)
   local min_dist = 999999
   local speed = nil
+  local dir = nil
   
   for _, veh in pairs(vehs) do
     local dist = (radar_pos - vec3(veh.pos)):length()
@@ -127,26 +128,47 @@ local function getStrongestVehicle(vehs, radar_pos)
     if dist < min_dist then
       local veh_speed = vec3(veh.vel):length()
     
+      local vel_dir = vec3(veh.vel):normalized() 
+      local my_veh_dir = vec3(obj:getDirectionVector())
+ 
+      --Same direction = away
+      if math.acos(vel_dir:dot(my_veh_dir)) < math.pi / 2.0 then
+        dir = "away"
+      else
+        dir = "closing"
+      end
+ 
       min_dist = dist
       speed = veh_speed
     end
   end
   
-  return speed
+  return speed, dir
 end
 
 local function getFastestVehicle(vehs)
   local max_speed = 0
+  local dir = nil
   
   for _, veh in pairs(vehs) do
     local veh_speed = vec3(veh.vel):length()
     
     if veh_speed > max_speed then
+      local vel_dir = vec3(veh.vel):normalized() 
+      local my_veh_dir = vec3(obj:getDirectionVector())
+ 
+      --Same direction = away
+      if math.acos(vel_dir:dot(my_veh_dir)) < math.pi / 2.0 then
+        dir = "away"
+      else
+        dir = "closing"
+      end
+    
       max_speed = veh_speed
     end
   end
   
-  return max_speed
+  return max_speed, dir
 end
 
 local function getRadarPos()
@@ -171,6 +193,8 @@ local function updateGFX(dt)
   local strongest_speed = nil
   local fastest_speed = nil
   local patrol_speed = nil
+  local strongest_dir = nil
+  local fastest_dir = nil
   
   local data = {}
 
@@ -182,11 +206,11 @@ local function updateGFX(dt)
     
     local vehs = getVehiclesInRadarBeam(radar_pos)
   
-    strongest_speed = getStrongestVehicle(vehs, radar_pos)
+    strongest_speed, strongest_dir = getStrongestVehicle(vehs, radar_pos)
     
     --Check if vehicle in beam first of all
     if strongest_speed then
-      fastest_speed = getFastestVehicle(vehs)
+      fastest_speed, fastest_dir = getFastestVehicle(vehs)
       data.strongest_speed = strongest_speed
     
       --Only display fastest speed if greater than strongest source speed
@@ -199,13 +223,13 @@ local function updateGFX(dt)
       if lock_strongest_speed_flag then
         locked_speed = strongest_speed
         
-        audio.playLockedSpeedVoice("front", "stationary", "closing")   
+        audio.playLockedSpeedVoice("front", "stationary", strongest_dir)   
       end
       
       if lock_fastest_speed_flag then
         locked_speed = fastest_speed
         
-        audio.playLockedSpeedVoice("front", "stationary", "closing")  
+        audio.playLockedSpeedVoice("front", "stationary", fastest_dir)  
       end
     end
     
@@ -222,6 +246,8 @@ local function updateGFX(dt)
   end
 
   guihooks.trigger('sendRadarInfo', data)
+  
+  audio.updateGFX(dt)
   
   --print("Max speed: " .. (max_speed * 3.6) .. " km/h")
 end
