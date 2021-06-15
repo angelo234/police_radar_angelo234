@@ -87,7 +87,15 @@ angular.module('beamng.apps')
         return spaces + s; 
       }
       
-      scope.$on('sendRadarInfo', function (event, data) {   
+      scope.$on('sendRadarInfo', function (event, data) { 
+        if (data.display_doppler_sound) {
+          strongest_speed_display.setValue('Aud');
+          middle_display.setValue(data.doppler_sound_on.toString());     
+          patrol_speed_display.setValue('');
+        
+          return;
+        }
+      
         if (!data.radar_xmitting) {
           //Radar hold mode (not transmitting)
           strongest_speed_display.setValue('');

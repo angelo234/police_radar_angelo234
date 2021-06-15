@@ -20,6 +20,7 @@ local middle_display_mode = "fastest_speed"
 local radar_xmitting = false
 local lock_strongest_speed_flag = false
 local lock_fastest_speed_flag = false
+local toggle_radar_doppler_sound_display_timer = -1
 
 local locked_speed = 0
 
@@ -30,7 +31,11 @@ local function toggleRadarXmitting()
 end
 
 local function toggleRadarDopplerSound()
-  audio.toggleRadarDopplerSound()
+  audio.setRadarDopplerVolume()
+  
+  audio.playSelectSound()
+  
+  toggle_radar_doppler_sound_display_timer = 0
 end
 
 local function lockStrongestSpeed()
@@ -260,6 +265,20 @@ local function updateGFX(dt)
     audio.setDopplerSoundPitch(tone_speed + noise_val)
   else
     audio.setDopplerSoundPitch(0)
+  end
+  
+  --Override display if adjusting volume with current volume level for 3 seconds
+  if toggle_radar_doppler_sound_display_timer >= 0 then
+    if toggle_radar_doppler_sound_display_timer >= 3 then
+      toggle_radar_doppler_sound_display_timer = -1
+    else
+      data.display_doppler_sound = true;
+      data.doppler_sound_on = audio.getDopplerSoundVolume()
+      
+      toggle_radar_doppler_sound_display_timer = toggle_radar_doppler_sound_display_timer + dt
+    end
+  else
+    data.display_doppler_sound = false
   end
 
   guihooks.trigger('sendRadarInfo', data)
