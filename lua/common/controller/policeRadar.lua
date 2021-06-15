@@ -18,7 +18,6 @@ local show_radar_beam = false
 local middle_display_mode = "fastest_speed"
 
 local radar_xmitting = false
-local radar_doppler_sound = true
 local lock_strongest_speed_flag = false
 local lock_fastest_speed_flag = false
 
@@ -26,14 +25,12 @@ local locked_speed = 0
 
 local function toggleRadarXmitting()
   radar_xmitting = not radar_xmitting
-  
-  audio.setDopplerSoundOn(radar_xmitting)
 
   audio.playSelectSound()
 end
 
 local function toggleRadarDopplerSound()
-  radar_doppler_sound = not radar_doppler_sound
+  audio.toggleRadarDopplerSound()
 end
 
 local function lockStrongestSpeed()
@@ -261,20 +258,14 @@ local function updateGFX(dt)
     local tone_speed = strongest_speed or 0
     
     audio.setDopplerSoundPitch(tone_speed + noise_val)
+  else
+    audio.setDopplerSoundPitch(0)
   end
 
   guihooks.trigger('sendRadarInfo', data)
   
   audio.updateGFX(dt)
-  
-  --print("Max speed: " .. (max_speed * 3.6) .. " km/h")
 end
-
---[[
-local function cleanUp()
-  obj:stopSFX(radar_doppler_sfx)
-end
-]]--
 
 M.toggleRadarXmitting = toggleRadarXmitting
 M.toggleRadarDopplerSound = toggleRadarDopplerSound

@@ -4,6 +4,8 @@ local radar_doppler_sfx = nil
 
 local voice_sfx_table = {}
 
+local radar_doppler_on = true
+
 local voice_volume = 5
 
 local locked_speed_voice_time = 0
@@ -57,7 +59,13 @@ local function playSelectSound()
   obj:playSFXOnce('radar_select', 0, 2.5, 1)
 end
 
+local function getDopplerSoundOn()
+  return radar_doppler_on
+end
+
 local function setDopplerSoundOn(on)
+  radar_doppler_on = on
+
   if on then
     obj:playSFX(radar_doppler_sfx)
   else
@@ -66,10 +74,15 @@ local function setDopplerSoundOn(on)
   end
 end
 
-local function setDopplerSoundPitch(speed)
-  local pitch = math.max(speed / 13.4112, 0)
+local function toggleRadarDopplerSound()
+  setDopplerSoundOn(not radar_doppler_on)
+end
 
-  obj:setVolumePitch(radar_doppler_sfx, 1, pitch)
+local function setDopplerSoundPitch(speed)
+  if radar_doppler_on then
+    local pitch = math.max(speed / 13.4112, 0) 
+    obj:setVolumePitch(radar_doppler_sfx, 1, pitch)
+  end
 end
 
 local function updateGFX(dt)
@@ -105,7 +118,9 @@ end
 M.init = init
 M.playLockedSpeedVoice = playLockedSpeedVoice
 M.playSelectSound = playSelectSound
+M.getDopplerSoundOn = getDopplerSoundOn
 M.setDopplerSoundOn = setDopplerSoundOn
+M.toggleRadarDopplerSound = toggleRadarDopplerSound
 M.setDopplerSoundPitch = setDopplerSoundPitch
 M.updateGFX = updateGFX
 
