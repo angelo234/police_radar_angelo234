@@ -13,9 +13,12 @@ local max_range = 500
 --Antenna rotation in degrees
 local yaw_angle = -3
 
+local show_radar_beam = false
+
 local middle_display_mode = "fastest_speed"
 
 local radar_xmitting = false
+local radar_doppler_sound = true
 local lock_strongest_speed_flag = false
 local lock_fastest_speed_flag = false
 
@@ -29,24 +32,46 @@ local function toggleRadarXmitting()
   audio.playSelectSound()
 end
 
+local function toggleRadarDopplerSound()
+  radar_doppler_sound = not radar_doppler_sound
+end
+
 local function lockStrongestSpeed()
-  lock_strongest_speed_flag = true
-  
-  middle_display_mode = "locked_speed"
+  if middle_display_mode == "locked_speed" then
+    middle_display_mode = "fastest_speed"
+    
+    locked_speed = 0
+  else
+    middle_display_mode = "locked_speed"
+    
+    lock_strongest_speed_flag = true
+  end
   
   audio.playSelectSound()
 end
 
 local function lockFastestSpeed()
-  lock_fastest_speed_flag = true
-  
-  middle_display_mode = "locked_speed"
+  if middle_display_mode == "locked_speed" then
+    middle_display_mode = "fastest_speed"
+    
+    locked_speed = 0
+  else
+    middle_display_mode = "locked_speed"
+    
+    lock_fastest_speed_flag = true
+  end
   
   audio.playSelectSound()
 end
 
 local function init(jbeamData)
-
+  yaw_angle = v.data.variables["$antenna_yaw_angle"].val
+  
+  if v.data.variables["$show_radar_beam"].val == 0 then
+    show_radar_beam = false
+  else
+    show_radar_beam = true
+  end
 end
 
 local function getBeamSpread()
@@ -76,10 +101,11 @@ local function getVehiclesInRadarBeam(radar_pos)
   local p1, p2 = getBeamDimensions(radar_pos)
 
   --debugDrawer:setSolidTriCulling(false)
-
-  obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p1:toFloat3(), color(255,0,0,255)) 
-  obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p2:toFloat3(), color(255,0,0,255)) 
-
+  
+  if show_radar_beam then
+    obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p1:toFloat3(), color(255,0,0,255)) 
+    obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p2:toFloat3(), color(255,0,0,255)) 
+  end
   --obj.debugDrawProxy:drawSphere(0.25, radar_pos:toFloat3(), color(255,0,0,255))
 
   --debugDrawer:drawSphere(p1:toFloat3(), 1, color(255,0,0,255))
@@ -215,13 +241,13 @@ local function updateGFX(dt)
       if lock_strongest_speed_flag then
         locked_speed = strongest_speed
         
-        audio.playLockedSpeedVoice("front", "stationary", strongest_dir)   
+        --audio.playLockedSpeedVoice("front", "stationary", strongest_dir)   
       end
       
       if lock_fastest_speed_flag then
         locked_speed = fastest_speed
         
-        audio.playLockedSpeedVoice("front", "stationary", fastest_dir)  
+        --audio.playLockedSpeedVoice("front", "stationary", fastest_dir)  
       end
     end
     
@@ -232,7 +258,7 @@ local function updateGFX(dt)
     
     local noise_val = math.random() * 0.5 - 0.25
     
-    local tone_speed = fastest_speed or 0
+    local tone_speed = strongest_speed or 0
     
     audio.setDopplerSoundPitch(tone_speed + noise_val)
   end
@@ -251,6 +277,7 @@ end
 ]]--
 
 M.toggleRadarXmitting = toggleRadarXmitting
+M.toggleRadarDopplerSound = toggleRadarDopplerSound
 M.lockStrongestSpeed = lockStrongestSpeed
 M.lockFastestSpeed = lockFastestSpeed
 M.init = init

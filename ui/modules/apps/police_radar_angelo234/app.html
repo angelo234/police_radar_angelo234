@@ -1,8 +1,46 @@
-<div id="container" style="height: 100%; width: 100%; background-color: black;"> 
+<div id="container" style="height: 130px; width: 500px; background-color: #232A2F;"> 
   <style>
+    h1 {
+      font-size: 22px;
+      color: white;
+      
+      margin: 6px;
+    }
+    
+    h2 {
+      font-size: 14px;
+      color: red;
+      
+      margin-left: 6px;
+      margin-right: 6px;
+    }
+  
     .speed-reading {
+      text-align: center;
+    
       margin-left: 15px;
       margin-right: 15px;
+    }
+    
+    #strongest-speed-display {
+      background-color: #3D1201;
+      padding: 4px;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    
+    #middle-display {
+      background-color: #320001;
+      padding: 4px;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    
+    #patrol-speed-display {
+      background-color: #003923;
+      padding: 4px;
+      padding-left: 10px;
+      padding-right: 10px;
     }
     
     #col1 {
@@ -35,27 +73,28 @@
   
   <div style="height: 100%; width: 100%;">
     <div class="speed-reading" id="col1">
-      <h2 style="color:white;">Strongest Signal</h2>
+      <h1>Target</h1>
       
-      <canvas id="strongest-speed-display" width="100" height="50">
+      <canvas id="strongest-speed-display" width="100" height="50" style="border-style: solid; border-color: black;">
         Your browser is unfortunately not supported.
       </canvas>
     </div>
     
     <div class="speed-reading" id="col2">
-      <h2 style="color:white;">Fastest Speed</h2>
-      <h3 id="fastest-speed"></h3>
-      
-      <canvas id="middle-display" width="100" height="50">
+      <div>
+        <h2 id="fastest-speed-indicator" style="display: inline-block;">FAST</h2> 
+        <h2 id="locked-speed-indicator" style="display: inline-block;">LOCK</h2>    
+      </div>
+
+      <canvas id="middle-display" width="100" height="50" style="border-style: solid; border-color: black;">
         Your browser is unfortunately not supported.
       </canvas>
     </div>
     
     <div class="speed-reading" id="col3">
-      <h2 style="color:white;">Patrol Speed</h2>
-      <h3 id="patrol-speed"></h3>
-      
-      <canvas id="patrol-speed-display" width="100" height="50">
+      <h1>Patrol Speed</h1>
+
+      <canvas id="patrol-speed-display" width="100" height="50" style="border-style: solid; border-color: black;">
         Your browser is unfortunately not supported.
       </canvas>
     </div>

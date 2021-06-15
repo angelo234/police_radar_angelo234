@@ -23,7 +23,7 @@ local function init()
   --Voices (credits: https://voicemaker.in/)
   voice_sfx_table["front"] = {sfx_name = "radar_voice_front", length = 0.45}
   voice_sfx_table["rear"] = {sfx_name = "radar_voice_rear", length = 0.45}
-  voice_sfx_table["stationary"] = {sfx_name = "radar_voice_stationary", length = 0.68}
+  voice_sfx_table["stationary"] = {sfx_name = "radar_voice_stationary", length = 0.7}
   voice_sfx_table["same"] = {sfx_name = "radar_voice_same", length = 0.45}
   voice_sfx_table["opposite"] = {sfx_name = "radar_voice_opposite", length = 0.7}
   voice_sfx_table["closing"] = {sfx_name = "radar_voice_closing", length = 0.5}
