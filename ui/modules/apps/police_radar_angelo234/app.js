@@ -92,17 +92,8 @@ angular.module('beamng.apps')
       scope.$on('sendRadarInfo', function (event, data) { 
         if (data.display_doppler_sound) {
           strongest_speed_display.setValue('Aud');
-          middle_display.setValue(" " + data.doppler_sound_on.toString());     
-          
-          if (data.patrol_speed !== undefined) {
-            var speed = UiUnits.speed(data.patrol_speed).val;
-          
-            var patrol_speed_str = Math.min(999, Math.trunc(Math.abs(speed))).toString();     
-            patrol_speed_display.setValue(convertToDisplay(patrol_speed_str));
-          }
-          else {
-            patrol_speed_display.setValue('');
-          }  
+          middle_display.setValue(" " + data.doppler_sound_on.toString());       
+          patrol_speed_display.setValue(''); 
         
           return;
         }
