@@ -21,7 +21,7 @@ local show_radar_beam = false
 
 local middle_display_mode = "fastest_speed"
 
-local radar_xmitting = false
+local radar_xmitting = true
 local lock_strongest_speed_flag = false
 local lock_fastest_speed_flag = false
 local toggle_radar_doppler_sound_display_timer = -1
