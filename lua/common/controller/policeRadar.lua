@@ -34,7 +34,7 @@ local function toggleRadarXmitting()
   audio.playSelectSound()
 end
 
-local function toggleRadarDopplerSound()
+local function adjustRadarDopplerVolume()
   audio.setRadarDopplerVolume()
   
   audio.playSelectSound()
@@ -306,7 +306,7 @@ local function updateGFX(dt)
 end
 
 M.toggleRadarXmitting = toggleRadarXmitting
-M.toggleRadarDopplerSound = toggleRadarDopplerSound
+M.adjustRadarDopplerVolume = adjustRadarDopplerVolume
 M.lockStrongestSpeed = lockStrongestSpeed
 M.lockFastestSpeed = lockFastestSpeed
 M.init = init

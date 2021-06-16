@@ -1,7 +1,7 @@
 {
   "bindings":[
     {
-      "action":"toggle_doppler_sound",
+      "action":"adjust_doppler_volume",
       "control":"shift pause"
     },
     {
