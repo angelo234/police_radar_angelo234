@@ -1,0 +1,25 @@
+{
+  "bindings":[
+    {
+      "action":"toggle_doppler_sound",
+      "control":"shift pause"
+    },
+    {
+      "action":"toggle_radar_xmitting",
+      "control":"pause"
+    },
+    {
+      "action":"lock_strongest_speed",
+      "control":"l"
+    },
+    {
+      "action":"lock_fastest_speed",
+      "control":"shift l"
+    }
+  ],
+  "devicetype":"keyboard",
+  "guid":"{6F1D2B61-D5A0-11CF-BFC7-444553540000}",
+  "name":"Keyboard",
+  "version":1,
+  "vidpid":"6F1D2B61"
+}

@@ -11,7 +11,11 @@ local radar_beam_size = 20
 local max_range = 500
 
 --Antenna rotation in degrees
-local yaw_angle = -3
+local antenna_yaw_angle = -3
+
+local antenna_relative_x_pos = 1.5
+local antenna_relative_y_pos = 0.4
+local antenna_relative_z_pos = 0.85
 
 local show_radar_beam = false
 
@@ -39,6 +43,8 @@ local function toggleRadarDopplerSound()
 end
 
 local function lockStrongestSpeed()
+  if not radar_xmitting then return end
+
   if middle_display_mode == "locked_speed" then
     middle_display_mode = "fastest_speed"
     
@@ -53,6 +59,8 @@ local function lockStrongestSpeed()
 end
 
 local function lockFastestSpeed()
+  if not radar_xmitting then return end
+
   if middle_display_mode == "locked_speed" then
     middle_display_mode = "fastest_speed"
     
@@ -67,7 +75,11 @@ local function lockFastestSpeed()
 end
 
 local function init(jbeamData)
-  yaw_angle = v.data.variables["$antenna_yaw_angle"].val
+  antenna_yaw_angle = v.data.variables["$antenna_yaw_angle"].val
+  
+  antenna_relative_x_pos = v.data.variables["$antenna_relative_x_pos"].val
+  antenna_relative_y_pos = v.data.variables["$antenna_relative_y_pos"].val
+  antenna_relative_z_pos = v.data.variables["$antenna_relative_z_pos"].val
   
   if v.data.variables["$show_radar_beam"].val == 0 then
     show_radar_beam = false
@@ -86,7 +98,7 @@ local function getBeamDimensions(radar_pos)
   local my_veh_dir = vec3(obj:getDirectionVector())
   local my_veh_dir_up = vec3(obj:getDirectionVectorUp())
   
-  local radar_dir = quatFromAxisAngle(my_veh_dir_up, yaw_angle * math.pi / 180.0) * my_veh_dir
+  local radar_dir = quatFromAxisAngle(my_veh_dir_up, antenna_yaw_angle * math.pi / 180.0) * my_veh_dir
   local radar_dir_right = radar_dir:cross(my_veh_dir_up)
   
   local beam_spread = getBeamSpread()
@@ -97,22 +109,9 @@ local function getBeamDimensions(radar_pos)
   return p1, p2
 end
 
-local function getVehiclesInRadarBeam(radar_pos)
+local function getVehiclesInRadarBeam(radar_pos, p1, p2)
   local vehs = {}
 
-  local p1, p2 = getBeamDimensions(radar_pos)
-
-  --debugDrawer:setSolidTriCulling(false)
-  
-  if show_radar_beam then
-    obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p1:toFloat3(), color(255,0,0,255)) 
-    obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p2:toFloat3(), color(255,0,0,255)) 
-  end
-  --obj.debugDrawProxy:drawSphere(0.25, radar_pos:toFloat3(), color(255,0,0,255))
-
-  --debugDrawer:drawSphere(p1:toFloat3(), 1, color(255,0,0,255))
-  --debugDrawer:drawSphere(p2:toFloat3(), 1, color(255,0,0,255))
-  
   local vehicles = mapmgr.objects
   
   for _, other_veh in pairs(vehicles) do
@@ -191,15 +190,17 @@ local function getFastestVehicle(vehs)
   return max_speed, dir
 end
 
-local function getRadarPos()
+local function getAntennaPos()
   local my_veh_dir = vec3(obj:getDirectionVector())
   local my_veh_dir_up = vec3(obj:getDirectionVectorUp())
   local my_veh_dir_right = vec3(obj:getDirectionVectorRight())
 
-  return vec3(obj:getFrontPosition()) + my_veh_dir_up * 0.85 - my_veh_dir * 1.5 + my_veh_dir_right * 0.4
+  return vec3(obj:getFrontPosition()) + my_veh_dir_up * antenna_relative_z_pos + my_veh_dir * antenna_relative_x_pos + my_veh_dir_right * antenna_relative_y_pos
 end
 
 local first_update = false
+local update_timer = 0
+local delta_update = 1.0 / 10.0 -- 10 Hz
 
 local function updateGFX(dt)
   if not first_update then
@@ -208,7 +209,23 @@ local function updateGFX(dt)
     first_update = true
   end
   
-  local radar_pos = getRadarPos()
+  local radar_pos = getAntennaPos()  
+  local p1, p2 = getBeamDimensions(radar_pos)
+  
+  if show_radar_beam then
+    obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p1:toFloat3(), color(255,0,0,255)) 
+    obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p2:toFloat3(), color(255,0,0,255))
+    obj.debugDrawProxy:drawSphere(0.1, radar_pos:toFloat3(), color(255,0,0,255))  
+  end
+  
+  if update_timer >= delta_update then    
+    update_timer = 0
+    
+    update_timer = update_timer + dt
+  else
+    update_timer = update_timer + dt  
+    return
+  end
   
   local strongest_speed = nil
   local fastest_speed = nil
@@ -224,7 +241,7 @@ local function updateGFX(dt)
   if radar_xmitting then
     data.patrol_speed = vec3(obj:getVelocity()):length()
     
-    local vehs = getVehiclesInRadarBeam(radar_pos)
+    local vehs = getVehiclesInRadarBeam(radar_pos, p1, p2)
   
     strongest_speed, strongest_dir = getStrongestVehicle(vehs, radar_pos)
     
@@ -267,15 +284,15 @@ local function updateGFX(dt)
     audio.setDopplerSoundPitch(0)
   end
   
-  --Override display if adjusting volume with current volume level for 3 seconds
+  --Override display if adjusting volume with current volume level for 2.5 seconds
   if toggle_radar_doppler_sound_display_timer >= 0 then
-    if toggle_radar_doppler_sound_display_timer >= 3 then
+    if toggle_radar_doppler_sound_display_timer >= 2.5 then
       toggle_radar_doppler_sound_display_timer = -1
     else
       data.display_doppler_sound = true;
       data.doppler_sound_on = audio.getDopplerSoundVolume()
       
-      toggle_radar_doppler_sound_display_timer = toggle_radar_doppler_sound_display_timer + dt
+      toggle_radar_doppler_sound_display_timer = toggle_radar_doppler_sound_display_timer + delta_update
     end
   else
     data.display_doppler_sound = false
@@ -283,7 +300,9 @@ local function updateGFX(dt)
 
   guihooks.trigger('sendRadarInfo', data)
   
-  audio.updateGFX(dt)
+  audio.updateGFX(delta_update)
+  
+  
 end
 
 M.toggleRadarXmitting = toggleRadarXmitting
