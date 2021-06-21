@@ -194,7 +194,7 @@ end
 
 local first_update = false
 local update_timer = 0
-local delta_update = 1.0 / 10.0 -- 10 Hz
+local delta_update = 1.0 / 20.0 -- 20 Hz
 
 local function updateGFX(dt)
   --Only run on player's vehicle
