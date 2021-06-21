@@ -17,6 +17,8 @@ local antenna_relative_x_pos = 1.5
 local antenna_relative_y_pos = 0.4
 local antenna_relative_z_pos = 0.85
 
+local beam_spread = 0
+
 local show_radar_beam = false
 
 local middle_display_mode = "fastest_speed"
@@ -81,17 +83,11 @@ local function init(jbeamData)
   antenna_relative_y_pos = v.data.variables["$antenna_relative_y_pos"].val
   antenna_relative_z_pos = v.data.variables["$antenna_relative_z_pos"].val
   
-  if v.data.variables["$show_radar_beam"].val == 0 then
-    show_radar_beam = false
-  else
-    show_radar_beam = true
-  end
-end
-
-local function getBeamSpread()
+  show_radar_beam = v.data.variables["$show_radar_beam"].val == 1
+  
   local radar_beam_size_rads = radar_beam_size * math.pi / 180.0
   
-  return max_range * math.tan(radar_beam_size_rads / 2.0)
+  beam_spread = max_range * math.tan(radar_beam_size_rads / 2.0)
 end
 
 local function getBeamDimensions(radar_pos)
@@ -100,9 +96,7 @@ local function getBeamDimensions(radar_pos)
   
   local radar_dir = quatFromAxisAngle(my_veh_dir_up, antenna_yaw_angle * math.pi / 180.0) * my_veh_dir
   local radar_dir_right = radar_dir:cross(my_veh_dir_up)
-  
-  local beam_spread = getBeamSpread()
-  
+ 
   local p1 = radar_pos + radar_dir * max_range + radar_dir_right * beam_spread
   local p2 = radar_pos + radar_dir * max_range + radar_dir_right * -beam_spread
 
