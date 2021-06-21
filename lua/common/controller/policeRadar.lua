@@ -197,6 +197,11 @@ local update_timer = 0
 local delta_update = 1.0 / 10.0 -- 10 Hz
 
 local function updateGFX(dt)
+  --Only run on player's vehicle
+  if not playerInfo.firstPlayerSeated then
+    return
+  end
+
   if not first_update then
     audio.init()
     
@@ -293,10 +298,8 @@ local function updateGFX(dt)
   end
 
   guihooks.trigger('sendRadarInfo', data)
-  
+                                                                           
   audio.updateGFX(delta_update)
-  
-  
 end
 
 M.toggleRadarXmitting = toggleRadarXmitting
