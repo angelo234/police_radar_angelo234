@@ -1,8 +1,8 @@
 angular.module('beamng.apps')
-.directive('policeRadarAngelo234', ['$log', 'StreamsManager', 'Utils', 'UiUnits', 'bngApi', function ($log, StreamsManager, Utils, UiUnits, bngApi) {
+.directive('policeRadarAngelo234', ['$log', 'Utils', function ($log, Utils) {
   return {
     restrict: 'E',
-    templateUrl: 'modules/apps/police_radar_angelo234/app.html',
+    template: '<div id="container" style="height: 130px; width: 500px;">   <style>    h1 {      font-size: 20px;      color: white;            margin: 6px;      margin-top: 10px;    }        h2 {      font-size: 15px;      color: red;      margin: 6px;      margin-top: 14px;      margin-bottom: 8px;    }      .speed-reading {      text-align: center;          margin-left: 15px;      margin-right: 15px;    }        #strongest-speed-display {      background-color: #3D1201;      border-style: solid;       border-color: black;            padding: 4px;      padding-left: 10px;      padding-right: 10px;    }        #middle-display {      background-color: #320001;      border-style: solid;       border-color: black;            padding: 4px;      padding-left: 10px;      padding-right: 10px;    }        #patrol-speed-display {      background-color: #003923;      border-style: solid;       border-color: black;            padding: 4px;      padding-left: 10px;      padding-right: 10px;    }        #col1 {    }        #col2 {    }        #col3 {    }        #radar-display-content {      display: none;       height: 100%;       width: 100%;       justify-content: space-evenly;    }  </style>  <div id="radar-display-content" style="background-color: #20272b;">    <div class="speed-reading" id="col1">      <h1>Target</h1>            <canvas id="strongest-speed-display" width="100" height="50">        Your browser is unfortunately not supported.      </canvas>    </div>        <div class="speed-reading" id="col2">      <div>        <h2 id="fastest-speed-indicator" style="display: inline-block;">FAST</h2>         <h2 id="locked-speed-indicator" style="display: inline-block;">LOCK</h2>          </div>      <canvas id="middle-display" width="100" height="50">        Your browser is unfortunately not supported.      </canvas>    </div>        <div class="speed-reading" id="col3">      <h1>Patrol</h1>      <canvas id="patrol-speed-display" width="100" height="50">        Your browser is unfortunately not supported.      </canvas>    </div>  </div></div>',
     replace: true,
     link: function (scope, element, attrs) {
     
@@ -171,12 +171,14 @@ angular.module('beamng.apps')
         
         bngApi.activeObjectLua("controller.getController('policeRadar')", (data) => {
           scope.$evalAsync(() => {
-            if(data !== null){
-              radar_display_content.style.display = "flex";
-            }
-            else {
-              radar_display_content.style.display = "none";
-            }
+						if (radar_display_content !== null) {
+							if(data !== undefined && data !== null){
+								radar_display_content.style.display = "flex";
+							}
+							else {
+								radar_display_content.style.display = "none";
+							}
+						}  
           });  
         });
       });
