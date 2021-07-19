@@ -84,8 +84,6 @@ angular.module('beamng.apps')
       }
       
       scope.$on('sendRadarInfo', function (event, data) { 
-				console.log(data.id);
-			
         if (data.display_doppler_sound) {
           strongest_speed_display.setValue('Aud');
           middle_display.setValue(" " + data.doppler_sound_on.toString());       
