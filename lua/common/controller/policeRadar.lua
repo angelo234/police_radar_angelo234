@@ -106,7 +106,7 @@ end
 local function getVehiclesInRadarBeam(radar_pos, p1, p2)
   local vehs = {}
 
-  local vehicles = mapmgr.objects
+  local vehicles = mapmgr.getObjects()
   
   for _, other_veh in pairs(vehicles) do
     --if other_veh:getJBeamFilename() ~= "unicycle" 
@@ -116,7 +116,7 @@ local function getVehiclesInRadarBeam(radar_pos, p1, p2)
       local hit_dist2 = intersectsRay_Triangle(other_veh.pos, vec3(0,0,-1), radar_pos, p1, p2)
       
       if (hit_dist ~= math.huge and hit_dist ~= -math.huge) or (hit_dist2 ~= math.huge and hit_dist2 ~= -math.huge) then
-        local raycast_dist = obj:castRayStatic(radar_pos:toFloat3(), (other_veh.pos - radar_pos):normalized():toFloat3(), max_range)
+        local raycast_dist = obj:castRayStatic(radar_pos, (other_veh.pos - radar_pos):normalized(), max_range)
         local dist_between = (other_veh.pos - radar_pos):length()
         
         --Check if no obstacles in way
@@ -212,9 +212,9 @@ local function updateGFX(dt)
   local p1, p2 = getBeamDimensions(radar_pos)
   
   if show_radar_beam then
-    obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p1:toFloat3(), color(255,0,0,255)) 
-    obj.debugDrawProxy:drawLine(radar_pos:toFloat3(), p2:toFloat3(), color(255,0,0,255))
-    obj.debugDrawProxy:drawSphere(0.1, radar_pos:toFloat3(), color(255,0,0,255))  
+		obj.debugDrawProxy:drawLine(radar_pos, p1, color(255,0,0,255)) 
+    obj.debugDrawProxy:drawLine(radar_pos, p2, color(255,0,0,255))
+    obj.debugDrawProxy:drawSphere(0.1, radar_pos, color(255,0,0,255))  
   end
   
   if update_timer >= delta_update then    
@@ -298,7 +298,7 @@ local function updateGFX(dt)
   end
 
   guihooks.trigger('sendRadarInfo', data)
-                                                                           
+
   audio.updateGFX(delta_update)
 end
 
