@@ -1,14 +1,18 @@
 {
 "police_radar_angelo234_mainslot":{
-	"information":{
+  "information":{
       "authors":"angelo234",
       "name":"angelo234's Police Radar",
       "value":1000,
     }
-    
-    "slotType" : "gps",
-	
-	"variables": [
+
+  "slotType" : "coupe_police_radar",
+  "flexbodies": [
+    ["mesh", "[group]:", "nonFlexMaterials"],
+    ["police_dash_radar", ["coupe_dash"], [], {"pos":{"x": -0.25, "y":-0.52, "z":0.95}, "rot":{"x":0, "y":0, "z":0}, "scale":{"x":1.0, "y":1.0, "z":1.0}}],
+  ],
+
+  "variables": [
     ["name", "type", "unit", "category", "default", "min", "max", "title", "description"]
     ["$antenna_yaw_angle", "range", "degrees", "Police Radar", -3, -90, 90, "Antenna Yaw Angle", "Yaw angle of police radar antenna", {"stepDis":0.1}],
     ["$antenna_relative_x_pos", "range", "m", "Police Radar", -1.65, -3, 0, "Antenna Relative x Position", "The relative x position of the radar antenna", {"stepDis":0.05}],
@@ -16,11 +20,11 @@
     ["$antenna_relative_z_pos", "range", "m", "Police Radar", 0.45, 0, 1.5, "Antenna Relative z Position", "The relative z position of the radar antenna", {"stepDis":0.05}],
     ["$show_radar_beam", "range", " ", "Police Radar", 0, 0, 1, "Show Radar Beam", "0 to hide and 1 to show", {"stepDis":1}],
   ],
-	
-	"controller": [
+
+  "controller": [
     ["fileName"],
-		["policeRadar",]
-	],
+    ["policeRadar"]
+  ],
 },
 
 }
