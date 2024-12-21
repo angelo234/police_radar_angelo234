@@ -19,9 +19,9 @@ local locked_speed_voice_vel = nil
 
 local function init()
   radar_doppler_sfx = obj:createSFXSource('art/sound/550hz.wav', 'AudioDefaultLoop3D', '', 1)
-  
+
   obj:createSFXSource('art/sound/select.wav', 'AudioGui', 'radar_select', 1)
-  
+
   --Voices (credits: https://voicemaker.in/)
   voice_sfx_table["front"] = {sfx_name = "radar_voice_front", length = 0.45}
   voice_sfx_table["rear"] = {sfx_name = "radar_voice_rear", length = 0.45}
@@ -30,7 +30,7 @@ local function init()
   voice_sfx_table["opposite"] = {sfx_name = "radar_voice_opposite", length = 0.7}
   voice_sfx_table["closing"] = {sfx_name = "radar_voice_closing", length = 0.5}
   voice_sfx_table["away"] = {sfx_name = "radar_voice_away", length = 0.45}
-  
+
   for key, data in pairs(voice_sfx_table) do
     obj:createSFXSource('art/sound/speech/' .. key .. '.wav', 'AudioGui', data.sfx_name, 1)
   end
@@ -51,7 +51,7 @@ local function playVoice(voice)
 
     return voice_sfx_table[voice].length
   end
-  
+
   return nil
 end
 
@@ -65,7 +65,7 @@ end
 
 local function setRadarDopplerVolume()
   radar_doppler_volume = radar_doppler_volume + 1
-  
+
   if radar_doppler_volume >= 5 then
     radar_doppler_volume = 0
   end
@@ -73,7 +73,7 @@ end
 
 
 local function setDopplerSoundPitch(speed)
-  local pitch = math.max(speed / 13.4112, 0) 
+  local pitch = math.max(speed / 13.4112, 0)
     obj:setVolumePitch(radar_doppler_sfx, radar_doppler_volume * 0.5, pitch)
 end
 
@@ -81,27 +81,27 @@ local function updateGFX(dt)
   if locked_speed_voice_timer >= locked_speed_voice_time then
     if locked_speed_voice_msg == "dir" then
       local length = playVoice(locked_speed_voice_dir)
-      
+
       locked_speed_voice_time = length
       locked_speed_voice_msg = "mode"
       locked_speed_voice_timer = 0
-      
+
     elseif locked_speed_voice_msg == "mode" then
       local length = playVoice(locked_speed_voice_mode)
-      
+
       locked_speed_voice_time = length
-      locked_speed_voice_msg = "vel"    
+      locked_speed_voice_msg = "vel"
       locked_speed_voice_timer = 0
-      
+
     elseif locked_speed_voice_msg == "vel" then
       local length = playVoice(locked_speed_voice_vel)
-      
+
       locked_speed_voice_time = length
-      locked_speed_voice_msg = "dir"    
+      locked_speed_voice_msg = "dir"
       locked_speed_voice_timer = -1
     end
   end
-  
+
   if locked_speed_voice_timer >= 0 then
     locked_speed_voice_timer = locked_speed_voice_timer + dt
   end
