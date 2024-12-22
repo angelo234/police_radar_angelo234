@@ -23,7 +23,7 @@ local locked_speed_voice_vel = nil
 local function init()
   radar_doppler_sfx = obj:createSFXSource(radar_doppler_sfx_src, 'AudioDefaultLoop3D', '', 1)
 
-  obj:createSFXSource('art/sound/select.wav', 'AudioGui', 'radar_select', 1)
+  obj:createSFXSource('art/sound/speech_police_radar_angelo234/select.wav', 'AudioGui', 'radar_select', 1)
 
   --Voices (credits: https://voicemaker.in/)
   voice_sfx_table["front"] = {sfx_name = "radar_voice_front", length = 0.45}
@@ -35,7 +35,7 @@ local function init()
   voice_sfx_table["away"] = {sfx_name = "radar_voice_away", length = 0.45}
 
   for key, data in pairs(voice_sfx_table) do
-    obj:createSFXSource('art/sound/speech/' .. key .. '.wav', 'AudioGui', data.sfx_name, 1)
+    obj:createSFXSource('art/sound/speech_police_radar_angelo234/speech/' .. key .. '.wav', 'AudioGui', data.sfx_name, 1)
   end
 end
 
