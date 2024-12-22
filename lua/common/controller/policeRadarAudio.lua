@@ -4,6 +4,9 @@ local radar_doppler_sfx = nil
 
 local voice_sfx_table = {}
 
+local radar_doppler_sfx_src = 'art/sound/550hz.wav'
+local radar_doppler_sfx_src_speed = 13.4112 -- 30 mph
+
 local radar_doppler_volume = 2
 
 local voice_volume = 5
@@ -18,7 +21,7 @@ local locked_speed_voice_mode = nil
 local locked_speed_voice_vel = nil
 
 local function init()
-  radar_doppler_sfx = obj:createSFXSource('art/sound/550hz.wav', 'AudioDefaultLoop3D', '', 1)
+  radar_doppler_sfx = obj:createSFXSource(radar_doppler_sfx_src, 'AudioDefaultLoop3D', '', 1)
 
   obj:createSFXSource('art/sound/select.wav', 'AudioGui', 'radar_select', 1)
 
@@ -73,8 +76,8 @@ end
 
 
 local function setDopplerSoundPitch(speed)
-  local pitch = math.max(speed / 13.4112, 0)
-    obj:setVolumePitch(radar_doppler_sfx, radar_doppler_volume * 0.5, pitch)
+  local pitch = math.max(speed / radar_doppler_sfx_src_speed, 0)
+  obj:setVolumePitch(radar_doppler_sfx, radar_doppler_volume * 0.5, pitch)
 end
 
 local function updateGFX(dt)

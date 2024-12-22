@@ -91,8 +91,8 @@ local function init(jbeamData)
 end
 
 local function getBeamDimensions(radar_pos)
-  local my_veh_dir = vec3(obj:getDirectionVector())
-  local my_veh_dir_up = vec3(obj:getDirectionVectorUp())
+  local my_veh_dir = obj:getDirectionVector()
+  local my_veh_dir_up = obj:getDirectionVectorUp()
 
   local radar_dir = quatFromAxisAngle(my_veh_dir_up, antenna_yaw_angle * math.pi / 180.0) * my_veh_dir
   local radar_dir_right = radar_dir:cross(my_veh_dir_up)
@@ -103,8 +103,10 @@ local function getBeamDimensions(radar_pos)
   return p1, p2
 end
 
+local tempVehs = {}
+
 local function getVehiclesInRadarBeam(radar_pos, p1, p2)
-  local vehs = {}
+  table.clear(tempVehs)
 
   local vehicles = mapmgr.getObjects()
 
@@ -121,63 +123,49 @@ local function getVehiclesInRadarBeam(radar_pos, p1, p2)
 
         --Check if no obstacles in way
         if raycast_dist >= dist_between then
-          table.insert(vehs, other_veh)
+          local noiseScale = 0.0025
+          local noise = math.random() * 0.5 - 0.25 --dist_between * noiseScale - 0.5 * dist_between * noiseScale
+          table.insert(tempVehs, {
+            veh = other_veh,
+            dist = dist_between,
+            speed = obj:getDirectionVector():dot(other_veh.vel) + noise,
+          })
         end
       end
     end
   end
 
-  return vehs
+  return tempVehs
 end
 
 local function getStrongestVehicle(vehs, radar_pos)
   local min_dist = 999999
-  local speed = nil
+  local strongest_speed = nil
   local dir = nil
 
-  for _, veh in pairs(vehs) do
-    local dist = (radar_pos - vec3(veh.pos)):length()
-
-    if dist < min_dist then
-      local veh_speed = vec3(veh.vel):length()
-
-      local vel_dir = vec3(veh.vel):normalized()
-      local my_veh_dir = vec3(obj:getDirectionVector())
-
+  for _, data in pairs(vehs) do
+    if data.dist < min_dist then
+      local speed = data.speed
       --Same direction = away
-      if math.acos(vel_dir:dot(my_veh_dir)) < math.pi / 2.0 then
-        dir = "away"
-      else
-        dir = "closing"
-      end
-
-      min_dist = dist
-      speed = veh_speed
+      dir = sign2(speed) == 1 and "away" or "closing"
+      min_dist = data.dist
+      strongest_speed = speed
     end
   end
 
-  return speed, dir
+  return strongest_speed, dir
 end
 
 local function getFastestVehicle(vehs)
-  local max_speed = 0
+  local max_speed = nil
   local dir = nil
 
-  for _, veh in pairs(vehs) do
-    local veh_speed = vec3(veh.vel):length()
-
-    if veh_speed > max_speed then
-      local vel_dir = vec3(veh.vel):normalized()
-      local my_veh_dir = vec3(obj:getDirectionVector())
-
+  for _, data in pairs(vehs) do
+    local speed = data.speed
+    if not max_speed or math.abs(speed) > math.abs(max_speed) then
       --Same direction = away
-      if math.acos(vel_dir:dot(my_veh_dir)) < math.pi / 2.0 then
-        dir = "away"
-      else
-        dir = "closing"
-      end
-
-      max_speed = veh_speed
+      dir = sign2(speed) == 1 and "away" or "closing"
+      max_speed = speed
     end
   end
 
@@ -185,11 +173,11 @@ local function getFastestVehicle(vehs)
 end
 
 local function getAntennaPos()
-  local my_veh_dir = vec3(obj:getDirectionVector())
-  local my_veh_dir_up = vec3(obj:getDirectionVectorUp())
-  local my_veh_dir_right = vec3(obj:getDirectionVectorRight())
+  local my_veh_dir = obj:getDirectionVector()
+  local my_veh_dir_up = obj:getDirectionVectorUp()
+  local my_veh_dir_right = obj:getDirectionVectorRight()
 
-  return vec3(obj:getFrontPosition()) + my_veh_dir_up * antenna_relative_z_pos + my_veh_dir * antenna_relative_x_pos + my_veh_dir_right * antenna_relative_y_pos
+  return obj:getFrontPosition() + my_veh_dir_up * antenna_relative_z_pos + my_veh_dir * antenna_relative_x_pos + my_veh_dir_right * antenna_relative_y_pos
 end
 
 local first_update = false
@@ -238,47 +226,39 @@ local function updateGFX(dt)
   data.radar_xmitting = radar_xmitting
 
   if radar_xmitting then
-    data.patrol_speed = vec3(obj:getVelocity()):length()
+    data.patrol_speed = obj:getVelocity():length()
 
     local vehs = getVehiclesInRadarBeam(radar_pos, p1, p2)
-
     strongest_speed, strongest_dir = getStrongestVehicle(vehs, radar_pos)
+    local strongest_speed_abs = strongest_speed and math.abs(strongest_speed)
+    data.strongest_speed = strongest_speed_abs
 
-    --Check if vehicle in beam first of all
-    if strongest_speed then
-      fastest_speed, fastest_dir = getFastestVehicle(vehs)
-      data.strongest_speed = strongest_speed
+    fastest_speed, fastest_dir = getFastestVehicle(vehs)
+    local fastest_speed_abs = fastest_speed and math.abs(fastest_speed)
 
-      --Only display fastest speed if greater than strongest source speed
-      if fastest_speed > strongest_speed then
-        data.fastest_speed = fastest_speed
-      else
-        data.fastest_speed = nil
-      end
+    --Only display fastest speed if greater than strongest source speed
+    if fastest_speed_abs and strongest_speed_abs and fastest_speed_abs > strongest_speed_abs then
+      data.fastest_speed = fastest_speed_abs
+    else
+      data.fastest_speed = nil
+    end
 
-      if lock_strongest_speed_flag then
-        locked_speed = strongest_speed
-
-        --audio.playLockedSpeedVoice("front", "stationary", strongest_dir)
-      end
-
-      if lock_fastest_speed_flag then
-        locked_speed = fastest_speed
-
-        --audio.playLockedSpeedVoice("front", "stationary", fastest_dir)
-      end
+    if lock_strongest_speed_flag then
+      locked_speed = strongest_speed_abs
+      --audio.playLockedSpeedVoice("front", "stationary", strongest_dir)
+    end
+    if lock_fastest_speed_flag then
+      locked_speed = fastest_speed_abs
+      --audio.playLockedSpeedVoice("front", "stationary", fastest_dir)
     end
 
     lock_strongest_speed_flag = false
     lock_fastest_speed_flag = false
 
     data.locked_speed = locked_speed
+    local tone_speed = strongest_speed_abs or 0
 
-    local noise_val = math.random() * 0.5 - 0.25
-
-    local tone_speed = strongest_speed or 0
-
-    audio.setDopplerSoundPitch(tone_speed + noise_val)
+    audio.setDopplerSoundPitch(tone_speed)
   else
     audio.setDopplerSoundPitch(0)
   end
