@@ -49,11 +49,8 @@ local function lockStrongestSpeed()
 
   if middle_display_mode == "locked_speed" then
     middle_display_mode = "fastest_speed"
-
-    locked_speed = 0
   else
     middle_display_mode = "locked_speed"
-
     lock_strongest_speed_flag = true
   end
 
@@ -65,11 +62,8 @@ local function lockFastestSpeed()
 
   if middle_display_mode == "locked_speed" then
     middle_display_mode = "fastest_speed"
-
-    locked_speed = 0
   else
     middle_display_mode = "locked_speed"
-
     lock_fastest_speed_flag = true
   end
 
@@ -214,11 +208,8 @@ local function updateGFX(dt)
     return
   end
 
-  local strongest_speed = nil
-  local fastest_speed = nil
-  local patrol_speed = nil
-  local strongest_dir = nil
-  local fastest_dir = nil
+  local strongest_speed, strongest_speed_abs, strongest_dir = nil, nil, nil
+  local fastest_speed, fastest_speed_abs, fastest_dir = nil, nil, nil
 
   local data = {}
 
@@ -229,31 +220,30 @@ local function updateGFX(dt)
     data.patrol_speed = obj:getVelocity():length()
 
     local vehs = getVehiclesInRadarBeam(radar_pos, p1, p2)
-    strongest_speed, strongest_dir = getStrongestVehicle(vehs, radar_pos)
-    local strongest_speed_abs = strongest_speed and math.abs(strongest_speed)
-    data.strongest_speed = strongest_speed_abs
+    if next(vehs) then
+      strongest_speed, strongest_dir = getStrongestVehicle(vehs, radar_pos)
+      strongest_speed_abs = math.abs(strongest_speed)
+      data.strongest_speed = strongest_speed_abs
 
-    fastest_speed, fastest_dir = getFastestVehicle(vehs)
-    local fastest_speed_abs = fastest_speed and math.abs(fastest_speed)
+      fastest_speed, fastest_dir = getFastestVehicle(vehs)
+      fastest_speed_abs = math.abs(fastest_speed)
 
-    --Only display fastest speed if greater than strongest source speed
-    if fastest_speed_abs and strongest_speed_abs and fastest_speed_abs > strongest_speed_abs then
-      data.fastest_speed = fastest_speed_abs
-    else
-      data.fastest_speed = nil
+      --Only display fastest speed if greater than strongest source speed
+      if fastest_speed_abs > strongest_speed_abs then
+        data.fastest_speed = fastest_speed_abs
+      end
     end
 
     if lock_strongest_speed_flag then
-      locked_speed = strongest_speed_abs
+      locked_speed = strongest_speed_abs or 0
       --audio.playLockedSpeedVoice("front", "stationary", strongest_dir)
+      lock_strongest_speed_flag = false
     end
     if lock_fastest_speed_flag then
-      locked_speed = fastest_speed_abs
+      locked_speed = fastest_speed_abs or 0
       --audio.playLockedSpeedVoice("front", "stationary", fastest_dir)
+      lock_fastest_speed_flag = false
     end
-
-    lock_strongest_speed_flag = false
-    lock_fastest_speed_flag = false
 
     data.locked_speed = locked_speed
     local tone_speed = strongest_speed_abs or 0
